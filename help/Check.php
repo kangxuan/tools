@@ -44,4 +44,27 @@ class Check
             return false;
         }
     }
+
+    /**
+     * 校验生日格式
+     *
+     * @author kx
+     * @param string $birth
+     * @param string $format
+     * @return bool
+     */
+    public static function checkBirth(string $birth, string $format = 'Y-m-d') : bool
+    {
+        $unixTime = strtotime($birth);
+        if (!$unixTime) {
+            return false;
+        }
+
+        // 校验生日的格式是否正确
+        if (date($format, $unixTime) == $birth) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
