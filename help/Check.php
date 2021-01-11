@@ -8,7 +8,7 @@ declare(strict_types = 1);
  * Time: 5:05 PM
  */
 
-namespace help\check;
+namespace help;
 
 
 class Check
