@@ -4,14 +4,14 @@ declare(strict_types = 1);
  * Created by PhpStorm
  *
  * User: kx
- * Date: 2021/1/9
- * Time: 6:00 PM
+ * Date: 2024/11/20
+ * Time: 16:20
  */
 
-namespace tool;
+namespace tools;
 
 
-trait BcTool
+class BcTool
 {
     /**
      * 比较任意精度的数字

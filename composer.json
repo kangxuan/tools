@@ -1,0 +1,16 @@
+{
+    "name": "kx/tools",
+    "description": "PHP Common Tool Classes.",
+    "autoload": {
+        "psr-4": {
+            "Kx\\Tools\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "kangxuan",
+            "email": "895560759@qq.com"
+        }
+    ],
+    "require": {}
+}

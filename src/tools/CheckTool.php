@@ -4,19 +4,17 @@ declare(strict_types = 1);
  * Created by PhpStorm
  *
  * User: kx
- * Date: 2021/1/9
- * Time: 5:05 PM
+ * Date: 2024/11/20
+ * Time: 16:16
  */
 
-namespace help;
+namespace tools;
 
 
-class Check
+class CheckTool
 {
     /**
      * 校验手机号格式
-     *
-     * @author kx
      * @param string $mobile
      * @return bool
      */
@@ -36,7 +34,7 @@ class Check
      * @param string $email
      * @return bool
      */
-    public static function checkEmail(string $email) : bool 
+    public static function checkEmail(string $email) : bool
     {
         if (preg_match('/^(\w)+(\.\w+)*@(\w)+((\.\w+)+)$/', $email)) {
             return true;
