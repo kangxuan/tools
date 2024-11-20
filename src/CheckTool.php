@@ -8,7 +8,7 @@ declare(strict_types = 1);
  * Time: 16:16
  */
 
-namespace tools;
+namespace Shanla\Tools;
 
 
 class CheckTool

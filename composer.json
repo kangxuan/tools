@@ -1,13 +1,13 @@
 {
     "name": "shanla/tools",
     "description": "PHP Common Tool Classes.",
-    "keywords": ["php", "tools"],
+    "keywords": ["tools"],
     "type": "library",
     "license": "MIT",
     "version": "1.0.0-beta",
     "autoload": {
         "psr-4": {
-            "Kx\\Tools\\": "src/"
+            "Shanla\\Tools\\": "src/"
         }
     },
     "authors": [

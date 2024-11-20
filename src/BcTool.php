@@ -8,7 +8,7 @@ declare(strict_types = 1);
  * Time: 16:20
  */
 
-namespace tools;
+namespace Shanla\Tools;
 
 
 class BcTool
