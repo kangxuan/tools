@@ -4,6 +4,7 @@
     "keywords": ["php", "tools"],
     "type": "library",
     "license": "MIT",
+    "version": "1.0.0-beta",
     "autoload": {
         "psr-4": {
             "Kx\\Tools\\": "src/"
