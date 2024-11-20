@@ -2,6 +2,7 @@
     "name": "shanla/tools",
     "description": "PHP Common Tool Classes.",
     "keywords": ["php", "tools"],
+    "type": "library",
     "license": "MIT",
     "autoload": {
         "psr-4": {
