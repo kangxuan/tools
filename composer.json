@@ -1,5 +1,5 @@
 {
-    "name": "kx/tools",
+    "name": "shanla/tools",
     "description": "PHP Common Tool Classes.",
     "autoload": {
         "psr-4": {
