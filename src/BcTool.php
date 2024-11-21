@@ -22,7 +22,7 @@ class BcTool
      * @param int $scale
      * @return int 0-相等 1-left大于right -1-right大于left
      */
-    public function comp($left, $right, int $scale = 4) : int
+    public static function comp($left, $right, int $scale = 4) : int
     {
         if (!is_string($left)) {
             $left = (string)$left;
