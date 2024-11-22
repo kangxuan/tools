@@ -175,4 +175,105 @@ class CheckTool
 
         return $age >= 18; // 判断是否成年
     }
+
+    /**
+     * 校验微信号格式
+     * @param string $weChatId
+     * @return bool
+     */
+    public static function checkWeChatId(string $weChatId) : bool
+    {
+        if (preg_match('/^[a-zA-Z][a-zA-Z0-9_]{5,19}$/', $weChatId)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 校验QQ格式
+     * @param string $qq
+     * @return bool
+     */
+    public static function checkQQ(string $qq) : bool
+    {
+        if (preg_match('/^[1-9][0-9]{4,11}$/', $qq)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 校验密码强度（长度至少8个字符并且包含大写字母、小写字母、数字和特殊字符）
+     * @param string $password
+     * @return bool
+     */
+    public static function checkPasswordStrong(string $password) : bool
+    {
+        if (preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 校验HEX颜色代码格式
+     * @param string $color
+     * @return bool
+     */
+    public static function checkHexColor(string $color) : bool
+    {
+        if (preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $color)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 校验是否是正整数
+     * @param mixed $value
+     * @return bool
+     */
+    public static function checkPositiveInteger(mixed $value) : bool
+    {
+        if (preg_match('/^[1-9][0-9]*$/', (string)$value)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 校验是否是负整数
+     * @param mixed $value
+     * @return bool
+     */
+    public static function checkNegativeInteger(mixed $value) : bool
+    {
+        if (preg_match('/^-\d+$/', (string)$value)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 校验XML格式
+     * @param string $xml
+     * @return bool
+     */
+    public static function checkXML(string $xml) : bool
+    {
+        libxml_use_internal_errors(true);
+        simplexml_load_string($xml);
+        return !libxml_get_errors();
+    }
+
+    /**
+     * 校验JSON格式
+     * @param string $json
+     * @return bool
+     */
+    public static function checkJSON(string $json) : bool
+    {
+        json_decode($json);
+        return json_last_error() === JSON_ERROR_NONE;
+    }
 }
