@@ -66,4 +66,68 @@ class CheckToolTest extends TestCase
         $this->assertEquals(false, CheckTool::checkUrl('://x//xx'));
         $this->assertEquals(true, CheckTool::checkUrl('http://baidu.com'));
     }
+
+    public function testCheckAgeAdult()
+    {
+        $this->assertEquals(false, CheckTool::checkAgeAdult('2024-01-12'));
+        $this->assertEquals(true, CheckTool::checkAgeAdult('1991-01-12'));
+    }
+
+    public function testCheckWeChatId()
+    {
+        $this->assertEquals(false, CheckTool::checkWeChatId('121'));
+        $this->assertEquals(true, CheckTool::checkWeChatId('shanla_1214'));
+    }
+
+    public function testCheckQQ()
+    {
+        $this->assertEquals(false, CheckTool::checkQQ('shanla114254323'));
+        $this->assertEquals(true, CheckTool::checkQQ('114254323'));
+    }
+
+    public function testCheckPasswordStrong()
+    {
+        $this->assertEquals(false, CheckTool::checkPasswordStrong('123456'));
+        $this->assertEquals(true, CheckTool::checkPasswordStrong('Shanla982809285*'));
+    }
+
+    public function testCheckHexColor()
+    {
+        $this->assertEquals(false, CheckTool::checkHexColor('#sdf'));
+        $this->assertEquals(true, CheckTool::checkHexColor('#000000'));
+    }
+
+    public function testCheckPositiveInteger()
+    {
+        $this->assertEquals(false, CheckTool::checkPositiveInteger('-1'));
+        $this->assertEquals(false, CheckTool::checkPositiveInteger('0'));
+        $this->assertEquals(true, CheckTool::checkPositiveInteger(1));
+    }
+
+    public function testCheckNegativeInteger()
+    {
+        $this->assertEquals(false, CheckTool::checkNegativeInteger('121.1'));
+        $this->assertEquals(false, CheckTool::checkNegativeInteger('0'));
+        $this->assertEquals(true, CheckTool::checkNegativeInteger('-1'));
+    }
+
+    public function testCheckXML()
+    {
+        $this->assertEquals(false, CheckTool::checkXML('<></>'));
+        $this->assertEquals(false, CheckTool::checkXML('<?xml version="1.0" encoding="" ?>></>'));
+        $this->assertEquals(true, CheckTool::checkXML('<?xml version="1.0" encoding="UTF-8"?>
+<note>
+    <to>Tove</to>
+    <from>Jani</from>
+    <heading>Reminder</heading>
+    <body>Don\'t forget me this weekend!</body>
+</note>'));
+    }
+
+    public function testCheckJSON()
+    {
+        $this->assertEquals(false, CheckTool::checkJSON('<></>'));
+        $this->assertEquals(false, CheckTool::checkJSON('<?xml version="1.0" encoding="" ?>></>'));
+        $this->assertEquals(true, CheckTool::checkJSON('{"json":1}'));
+    }
 }
