@@ -142,7 +142,7 @@ class CheckTool
      */
     public static function checkContainsChinese(string $str) : bool
     {
-        if(preg_match("//[\x{4e00}-\x{9fa5}]/u", $str)) {
+        if(preg_match("/[\x{4e00}-\x{9fa5}]/u", $str)) {
             return true;
         }
         return false;
