@@ -71,4 +71,42 @@ class ArrayTool
         return $tree;
     }
 
+    /**
+     * 将二维数组转换成某一个key为下标的新数组
+     * @param array $list
+     * @param string $key
+     * @return array
+     */
+    public static function arrayIndexByKey(array $list, string $key) : array
+    {
+        return array_reduce($list, function ($carry, $item) use ($key) {
+            $index = $item[$key];
+            if (!isset($carry[$index])) {
+                $carry[$index] = [];
+            }
+            $carry[$index][] = $item;
+            return $carry;
+        }, []);
+    }
+
+    /**
+     * 二维数组通过某一个key的值进行排序
+     * @param array $list
+     * @param string $key
+     * @param string $sort
+     * @return array
+     */
+    public static function arraySortByKey(array $list, string $key, string $sort = 'asc') : array
+    {
+        // 按照 'id' 字段升序排序
+        usort($list, function ($a, $b) use ($key, $sort) {
+            if ($sort == 'asc') {
+                return $a[$key] <=> $b[$key]; // 使用太空船操作符
+            } else {
+                return $b[$key] <=> $a[$key];
+            }
+        });
+        return $list;
+    }
+
 }
