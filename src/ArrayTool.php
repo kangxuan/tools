@@ -109,4 +109,19 @@ class ArrayTool
         return $list;
     }
 
+    /**
+     * 给数据增加一列
+     * @param array $list
+     * @param string $key
+     * @param $value
+     * @return array
+     */
+    public static function arrayAddColumn(array $list, string $key, $value) : array
+    {
+        return  array_map(function ($item) use($key, $value) {
+            $item[$key] = $value;
+            return $item;
+        }, $list);
+    }
+
 }
