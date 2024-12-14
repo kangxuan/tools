@@ -98,7 +98,6 @@ class ArrayTool
      */
     public static function arraySortByKey(array $list, string $key, string $sort = 'asc') : array
     {
-        // 按照 'id' 字段升序排序
         usort($list, function ($a, $b) use ($key, $sort) {
             if ($sort == 'asc') {
                 return $a[$key] <=> $b[$key]; // 使用太空船操作符
