@@ -91,6 +91,81 @@ class DateTimeTool
     }
 
     /**
+     * 获取时间差
+     * @param string $startTime
+     * @param string $endTime
+     * @return string
+     * @throws Exception
+     */
+    public static function getTimeDifference(string $startTime, string $endTime) : string
+    {
+        $difference = '';
+        if (empty($startTime) || empty($endTime)) {
+            return $difference;
+        }
+        $startTime = new DateTime($startTime);
+        $endTime = new DateTime($endTime);
+        $diff = $startTime->diff($endTime);
+
+        if ($diff->y > 0) {
+            $difference .= $diff->y . '年';
+        }
+        if ($diff->m > 0) {
+            $difference .= $diff->m . '月';
+        }
+        if ($diff->d > 0) {
+            $difference .= $diff->d . '天';
+        }
+        if ($diff->h > 0) {
+            $difference .= $diff->h . '小时';
+        }
+        if ($diff->i > 0) {
+            $difference .= $diff->i . '分';
+        }
+        if ($diff->s > 0) {
+            $difference .= $diff->s . '秒';
+        }
+        return $difference;
+    }
+
+    /**
+     * 获取指定时间距今的时间
+     * @param string $startTime
+     * @param string $suffix
+     * @return string
+     */
+    public static function getTimeAgo(string $startTime, string $suffix = '') : string
+    {
+        if (empty($startTime)) {
+            return '';
+        }
+        $startTimestamp = strtotime($startTime);
+        $diffTimestamp = time() - $startTimestamp;
+
+        if ($diffTimestamp < 60) {
+            return '1分钟前' . $suffix;
+        } elseif ($diffTimestamp < 3600) {
+            $minutes = floor($diffTimestamp / 60);
+            return $minutes . '分钟前' . $suffix;
+        } elseif ($diffTimestamp < 86400) {
+            $hours = floor($diffTimestamp / 3600);
+            return $hours . '小时前' . $suffix;
+        } elseif ($diffTimestamp < 86400 * 3) {
+            $days = floor($diffTimestamp / 86400);
+            return $days . '天前' . $suffix;
+        } else {
+            $yearNow = date('Y', time());
+            $yearStart = date('Y', $startTimestamp);
+
+            if ($yearNow == $yearStart) {
+                return date('m-d', $startTimestamp);
+            } else {
+                return date('Y-m-d', $startTimestamp);
+            }
+        }
+    }
+
+    /**
      * 获取下个月几号，如果不存在则返回下个月最后一天的时间
      * @param int $day
      * @param string $format
