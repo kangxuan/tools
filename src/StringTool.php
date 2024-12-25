@@ -69,7 +69,7 @@ class StringTool
      */
     public static function startWith(string $str, string $prefix) : bool
     {
-        return strpos($str, $prefix) === 0;
+        return str_starts_with($str, $prefix);
     }
 
     /**
@@ -80,7 +80,33 @@ class StringTool
      */
     public static function endWith(string $str, string $suffix) : bool
     {
-        return substr($str, -strlen($suffix)) === $suffix;
+        return str_ends_with($str, $suffix);
+    }
+
+    /**
+     * JSON decode
+     * @param string $jsonStr
+     * @return array
+     */
+    public static function jsonDecode(string $jsonStr) : array
+    {
+        if (empty($jsonStr)) {
+            return [];
+        }
+        return json_decode($jsonStr, true);
+    }
+
+    /**
+     * 隐藏手机号中间四位数
+     * @param string $mobile
+     * @return string
+     */
+    public static function hideMobile(string $mobile) : string
+    {
+        if (!empty($mobile)) {
+            return substr_replace($mobile, '****', -8, 4);
+        }
+        return $mobile;
     }
 
 
