@@ -269,4 +269,15 @@ class CheckTool
         json_decode($json);
         return json_last_error() === JSON_ERROR_NONE;
     }
+
+    /**
+     * 检测版本号格式
+     * @param string $version
+     * @return bool
+     */
+    public static function isValidVersion(string $version) : bool
+    {
+        // 匹配版本号（数字、字母、点号、可选的后缀）
+        return preg_match('/^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$/', $version) === 1;
+    }
 }
