@@ -19,6 +19,7 @@ class ComposerStaticInit90f1a9bf5ffbaefc1b49fa69a0428067
         ),
         'P' => 
         array (
+            'Predis\\' => 7,
             'PhpParser\\' => 10,
         ),
         'D' => 
@@ -35,6 +36,10 @@ class ComposerStaticInit90f1a9bf5ffbaefc1b49fa69a0428067
         'Shanla\\Tools\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'Predis\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/predis/predis/src',
         ),
         'PhpParser\\' => 
         array (
