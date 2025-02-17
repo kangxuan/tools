@@ -124,10 +124,7 @@ class FileTool
      */
     public static function getFileExtension(string $fileName) : bool|string
     {
-        if (self::exists($fileName)) {
-            return pathinfo($fileName, PATHINFO_EXTENSION);
-        }
-        return false;
+        return pathinfo($fileName, PATHINFO_EXTENSION);
     }
 
     /**
@@ -166,6 +163,73 @@ class FileTool
         }
 
         return ['success' => 0, 'msg' => '文件上传失败'];
+    }
+
+    /**
+     * 远程文件下载到本地（适用于小文件）
+     * @param string $fileUrl
+     * @param string $savePath
+     * @param int $timeout
+     * @return bool
+     */
+    public static function downloadFileToLocal(string $fileUrl, string $savePath, int $timeout = 30) : bool
+    {
+        $contextOptions = [
+            'http' => [
+                'timeout' => $timeout,
+            ]
+        ];
+        $context = stream_context_create($contextOptions);
+
+        // 获取远程文件内容
+        $fileData = file_get_contents($fileUrl, false, $context);
+        // 下载失败
+        if ($fileData === false) {
+            return false;
+        }
+        // 写入到本地文件
+        $result = file_put_contents($savePath, $fileData);
+        return $result !== false;
+    }
+
+    /**
+     * 通过curl方式远程文件下载到本地（适用于大文件）
+     * @param string $fileUrl
+     * @param string $savePath
+     * @param int $timeout
+     * @return bool
+     */
+    public static function downloadFileToLocalWithCurl(string $fileUrl, string $savePath, int $timeout = 30) : bool
+    {
+        $ch = curl_init($fileUrl);
+
+        // 设置 cURL 选项
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 将结果返回而不是直接输出
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // 跟随重定向
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout); // 设置超时时间
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0); // 忽略 SSL 验证
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // 忽略 SSL 验证
+
+        // 打开本地文件以写入
+        $fp = fopen($savePath, 'w');
+        if ($fp === false) {
+            curl_close($ch);
+            return false;
+        }
+
+        // 将结果写入文件
+        curl_setopt($ch, CURLOPT_FILE, $fp);
+
+        // 执行会话
+        $result = curl_exec($ch);
+        // 关闭文件和curl会话
+        fclose($fp);
+        curl_close($ch);
+
+        if ($result === false) {
+            return false;
+        }
+        return true;
     }
 
     /**

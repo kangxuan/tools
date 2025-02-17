@@ -212,4 +212,113 @@ class ImageTool
             default => throw new Exception('不支持的图片类型'),
         };
     }
+
+    /**
+     * 将多个头像合并为一张图
+     * @param array $imageUrls 图片列表
+     * @param int $finalWidth 合并图的宽
+     * @param int $finalHeight 合并图的高
+     * @param int $cols 每行图片多少张
+     * @param int $margin 每张图片之间的间隙
+     * @return string
+     * @throws Exception
+     */
+    public static function mergeAvatars(array $imageUrls, int $finalWidth = 300, int $finalHeight = 300, int $cols = 3, int $margin = 10) : string
+    {
+        // 将图片下载到本地
+        $localImages = [];
+        foreach ($imageUrls as $imageUrl) {
+            $imageExtension = FileTool::getFileExtension($imageUrl);
+            $tmpSavePath = '/tmp/' . date("Ymd") . '/' . uniqid() . md5($imageUrl) . $imageExtension;
+            FileTool::downloadFileToLocal($imageUrl, $tmpSavePath);
+            $localImages[] = $tmpSavePath;
+        }
+        if (empty($localImages) || count($imageUrls) != count($localImages)) {
+            throw new Exception('图片下载失败');
+        }
+
+        // 计算行数
+        $rows = ceil(count($localImages) / $cols);
+
+        // 计算每张图的宽度和高度
+        $imageWidth = intval(($finalWidth - ($cols - 1) * $margin) / $cols);  // 每张图的宽度
+        $imageHeight = intval(($finalHeight - ($rows - 1) * $margin) / $rows); // 每张图的高度
+
+        // 创建一个空白图像
+        $mergedImage = imagecreatetruecolor($finalWidth, $finalHeight);
+        // 为合并图设置背景
+        $backgroundColor = imagecolorallocate($mergedImage, 255, 255, 255);
+        imagefill($mergedImage, 0, 0, $backgroundColor);
+
+        // 依次将图片放到合并图中
+        foreach ($localImages as $index => $localImage) {
+            // 给图片创建一个新的图像
+            $image = self::imageCreateFromAny($localImage);
+            // 计算图片的宽高
+            $originalWidth = imagesx($image);
+            $originalHeight = imagesy($image);
+            // 计算缩放比例，保持图片比例
+            $scale = min($imageWidth / $originalWidth, $imageHeight / $originalHeight);
+            $scaledWidth = intval($originalWidth * $scale);
+            $scaledHeight = intval($originalHeight * $scale);
+            // 创建一个缩放后的空白图像
+            $scaledImage = imagecreatetruecolor($scaledWidth, $scaledHeight);
+            // 将图片按照新的尺寸复制到空白图像
+            imagecopyresampled($scaledImage, $image, 0, 0, 0, 0, $scaledWidth, $scaledHeight, $originalWidth, $originalHeight);
+
+            // 计算每张图的位置，确保水平和垂直居中
+            $x = intval(($index % $cols) * ($imageWidth + $margin) + ($imageWidth - $scaledWidth) / 2);  // 横向居中
+            $y = intval(floor($index / $cols) * ($imageHeight + $margin) + ($imageHeight - $scaledHeight) / 2);  // 纵向居中
+
+            // 将缩放后的图像复制到合并图上
+            imagecopy($mergedImage, $scaledImage, $x, $y, 0, 0, $scaledWidth, $scaledHeight);
+
+            // 释放内存
+            imagedestroy($image);
+            imagedestroy($scaledImage);
+        }
+        // 将生成的临时文件删除
+        unset($imagePath);
+        foreach ($localImages as $imagePath) {
+            // 删除临时文件
+            @unlink($imagePath);
+        }
+
+        // 保存合并后的图像到本地
+        $outputPath = '/tmp/' . date("Ymd") . '/' . uniqid() . md5(implode(',', $localImages)) . '.jpg';
+        imagejpeg($mergedImage, $outputPath, 100);
+        // 释放内存
+        imagedestroy($mergedImage);
+        return $outputPath;
+    }
+
+    /**
+     * 由文件或URL创建一个新图像
+     * @param string $filepath
+     * @return GdImage|bool
+     * @throws Exception
+     */
+    public static function imageCreateFromAny(string $filepath) : GdImage|bool
+    {
+        $type = exif_imagetype($filepath); // [] if you don't have exif you could use getImageSize()
+
+        $allowedTypes = array(
+            1,  // [] gif
+            2,  // [] jpg
+            3,  // [] png
+            6   // [] bmp
+        );
+
+        if (!in_array($type, $allowedTypes)) {
+            return false;
+        }
+
+        return match ($type) {
+            1 => imageCreateFromGif($filepath),
+            2 => imageCreateFromJpeg($filepath),
+            3 => imageCreateFromPng($filepath),
+            6 => imageCreateFromBmp($filepath),
+            default => throw new Exception('暂不支持的图片格式'),
+        };
+    }
 }
