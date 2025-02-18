@@ -7,6 +7,137 @@ namespace Shanla\Tools;
 class ArrayTool
 {
     /**
+     * 使用点号方式获取多维数组值
+     * @param array $array
+     * @param string $key
+     * @param $default
+     * @return mixed
+     */
+    public static function getValue(array $array, string $key, $default = null) : mixed
+    {
+        foreach (explode('.', $key) as $segment) {
+            if (!is_array($array) || !array_key_exists($segment, $array)) {
+                return $default;
+            }
+            $array = $array[$segment];
+        }
+        return $array;
+    }
+
+    /**
+     * 使用点号设置多维数组值
+     * @param array $array
+     * @param string $key
+     * @param $value
+     * @return array
+     */
+    public static function setValue(array &$array, string $key, $value) : array
+    {
+        $current = &$array;
+        foreach (explode('.', $key) as $segment) {
+            if (!isset($current[$segment]) || !is_array($current[$segment])) {
+                $current[$segment] = [];
+            }
+            $current = &$current[$segment];
+        }
+        $current = $value;
+        return $array;
+    }
+
+    /**
+     * 判断key是否存在（支持点号）
+     * @param array $array
+     * @param string $key
+     * @return bool
+     */
+    public static function hasKey(array $array, string $key): bool
+    {
+        foreach (explode('.', $key) as $segment) {
+            if (!is_array($array) || !array_key_exists($segment, $array)) {
+                return false;
+            }
+            $array = $array[$segment];
+        }
+        return true;
+    }
+
+    /**
+     * 根据条件筛选数组
+     * @param array $array
+     * @param array $conditions
+     * @return array
+     */
+    public static function where(array $array, array $conditions) : array
+    {
+        return array_filter($array, function ($item) use ($conditions) {
+            foreach ($conditions as $key => $value) {
+                if (self::getValue($item, $key) != $value) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    /**
+     * 根据字段分组
+     * @param array $array
+     * @param string $key
+     * @return array
+     */
+    public static function groupBy(array $array, string $key) : array
+    {
+        $result = [];
+        foreach ($array as $item) {
+            $groupKey = self::getValue($item, $key);
+            $result[$groupKey][] = $item;
+        }
+        return $result;
+    }
+
+    /**
+     * 数组分页
+     * @param array $array
+     * @param int $pageSize
+     * @param int $page
+     * @return array
+     */
+    public static function paginate(array $array, int $pageSize, int $page) : array
+    {
+        $total = count($array);
+        $offset = ($page - 1) * $pageSize;
+        return [
+            'data' => array_slice($array, $offset, $pageSize),
+            'total' => $total,
+            'page_size' => $pageSize,
+            'current_page' => $page,
+            'last_page' => ceil($total / $pageSize),
+        ];
+    }
+
+    /**
+     * 排除指定键
+     * @param array $array
+     * @param array $keys
+     * @return array
+     */
+    public static function exceptKeys(array $array, array $keys) : array
+    {
+        return array_diff_key($array, array_flip($keys));
+    }
+
+    /**
+     * 保留指定键
+     * @param array $array
+     * @param array $keys
+     * @return array
+     */
+    public static function onlyKeys(array $array, array $keys) : array
+    {
+        return array_intersect_key($array, array_flip($keys));
+    }
+
+    /**
      * 统计二维数组中指定字段为指定值或不为指定的个数
      * @param array $array
      * @param string $key
@@ -102,7 +233,7 @@ class ArrayTool
     }
 
     /**
-     * 给数据增加一列
+     * 给二维数组增加一列
      * @param array $list
      * @param string $key
      * @param $value
