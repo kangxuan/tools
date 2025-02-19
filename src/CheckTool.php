@@ -280,4 +280,14 @@ class CheckTool
         // 匹配版本号（数字、字母、点号、可选的后缀）
         return preg_match('/^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$/', $version) === 1;
     }
+
+    /**
+     * 是否是整型字符串
+     * @param $value
+     * @return bool
+     */
+    public static function isValidIntegerString($value) : bool
+    {
+        return preg_match('/^-?\d+$/', $value) && $value === (string)(int)$value;
+    }
 }
