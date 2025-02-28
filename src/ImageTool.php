@@ -300,7 +300,7 @@ class ImageTool
      */
     public static function imageCreateFromAny(string $filepath) : GdImage|bool
     {
-        $type = exif_imagetype($filepath); // [] if you don't have exif you could use getImageSize()
+        list(, , $imgType) = self::getImageSize($filepath);
 
         $allowedTypes = array(
             1,  // [] gif
@@ -309,11 +309,11 @@ class ImageTool
             6   // [] bmp
         );
 
-        if (!in_array($type, $allowedTypes)) {
+        if (!in_array($imgType, $allowedTypes)) {
             return false;
         }
 
-        return match ($type) {
+        return match ($imgType) {
             1 => imageCreateFromGif($filepath),
             2 => imageCreateFromJpeg($filepath),
             3 => imageCreateFromPng($filepath),
