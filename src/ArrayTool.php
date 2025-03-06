@@ -10,38 +10,13 @@ class ArrayTool
      * 使用点号方式获取多维数组值
      * @param array $array
      * @param string $key
-     * @param $default
+     * @param mixed $default
      * @return mixed
      */
-    public static function getValue(array $array, string $key, $default = null) : mixed
+    public static function getValue(array $array, string $key, mixed $default = null): mixed
     {
-        foreach (explode('.', $key) as $segment) {
-            if (!is_array($array) || !array_key_exists($segment, $array)) {
-                return $default;
-            }
-            $array = $array[$segment];
-        }
-        return $array;
-    }
-
-    /**
-     * 使用点号设置多维数组值
-     * @param array $array
-     * @param string $key
-     * @param $value
-     * @return array
-     */
-    public static function setValue(array &$array, string $key, $value) : array
-    {
-        $current = &$array;
-        foreach (explode('.', $key) as $segment) {
-            if (!isset($current[$segment]) || !is_array($current[$segment])) {
-                $current[$segment] = [];
-            }
-            $current = &$current[$segment];
-        }
-        $current = $value;
-        return $array;
+        $segments = explode('.', $key);
+        return self::traverseArray($array, $segments, $default);
     }
 
     /**
@@ -52,13 +27,135 @@ class ArrayTool
      */
     public static function hasKey(array $array, string $key): bool
     {
-        foreach (explode('.', $key) as $segment) {
-            if (!is_array($array) || !array_key_exists($segment, $array)) {
-                return false;
+        $segments = explode('.', $key);
+        return self::traverseArray($array, $segments) !== null;
+    }
+
+    /**
+     * 递归遍历多维数组以获取指定键的值
+     *
+     * 此方法用于递归遍历多维数组，根据传入的键段数组查找对应的值。
+     * 如果在遍历过程中某个键不存在，将返回默认值。
+     *
+     * @param array $array 要遍历的多维数组
+     * @param array $segments 键段数组，由点号分隔的键分割而成
+     * @param mixed $default 如果未找到值，返回的默认值
+     * @return mixed 找到的值或默认值
+     */
+    private static function traverseArray(array $array, array $segments, $default = null)
+    {
+        $current = $array;
+        foreach ($segments as $segment) {
+            if (!is_array($current) || !array_key_exists($segment, $current)) {
+                return $default;
             }
-            $array = $array[$segment];
+            $current = $current[$segment];
         }
-        return true;
+        return $current;
+    }
+
+    /**
+     * 使用点号设置多维数组值
+     * @param array $array
+     * @param string $key
+     * @param mixed $value
+     * @return array
+     */
+    public static function setValue(array &$array, string $key, mixed $value): array
+    {
+        $current = &$array;
+        $segments = explode('.', $key);
+        foreach ($segments as $segment) {
+            if (!isset($current[$segment]) || !is_array($current[$segment])) {
+                $current[$segment] = [];
+            }
+            $current = &$current[$segment];
+        }
+        $current = $value;
+        return $array;
+    }
+
+    /**
+     * 数组分页
+     * @param array $array
+     * @param int $pageSize
+     * @param int $page
+     * @return array
+     */
+    public static function paginate(array $array, int $pageSize, int $page): array
+    {
+        if ($pageSize <= 0 || $page <= 0) {
+            return ['data' => [], 'total' => 0, 'page_size' => 0, 'current_page' => 0, 'last_page' => 0];
+        }
+        $total = count($array);
+        $offset = ($page - 1) * $pageSize;
+        return [
+            'data' => array_slice($array, $offset, $pageSize),
+            'total' => $total,
+            'page_size' => $pageSize,
+            'current_page' => $page,
+            'last_page' => ceil($total / $pageSize),
+        ];
+    }
+
+    /**
+     * 统计二维数组中指定字段为指定值或不为指定的个数
+     * @param array $array
+     * @param string $key
+     * @param mixed $search
+     * @param int $compare 比较符号 1相等 2不相等
+     * @return int
+     */
+    public static function countSearchValues(array $array, string $key, mixed $search, int $compare = 1): int
+    {
+        $count = 0;
+        foreach ($array as $item) {
+            if (isset($item[$key])) {
+                if ($compare == 1 && $item[$key] == $search) {
+                    $count++;
+                } elseif ($compare == 2 && $item[$key] != $search) {
+                    $count++;
+                }
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * 将数组转换成树形结构
+     * @param array $list
+     * @param string $pk
+     * @param string $pid
+     * @param string $child
+     * @param int $root
+     * @return array
+     */
+    public static function arrayToTree(array $list, string $pk = 'id', string $pid = 'p_id', string $child = '_child', int $root = 0): array
+    {
+        if (empty($list)) {
+            return [];
+        }
+        $refer = [];
+        foreach ($list as &$data) {
+            if (!isset($data[$pk]) || !isset($data[$pid])) {
+                continue;
+            }
+            $refer[$data[$pk]] = &$data;
+        }
+        $tree = [];
+        foreach ($list as $key => $data) {
+            if (!isset($data[$pid])) {
+                continue;
+            }
+            $parentId = $data[$pid];
+            if ($root == $parentId) {
+                $tree[] = &$data;
+            } elseif (isset($refer[$parentId])) {
+                $parent = &$refer[$parentId];
+                $parent[$child][] = &$list[$key];
+            }
+        }
+        return $tree;
     }
 
     /**
@@ -96,26 +193,6 @@ class ArrayTool
     }
 
     /**
-     * 数组分页
-     * @param array $array
-     * @param int $pageSize
-     * @param int $page
-     * @return array
-     */
-    public static function paginate(array $array, int $pageSize, int $page) : array
-    {
-        $total = count($array);
-        $offset = ($page - 1) * $pageSize;
-        return [
-            'data' => array_slice($array, $offset, $pageSize),
-            'total' => $total,
-            'page_size' => $pageSize,
-            'current_page' => $page,
-            'last_page' => ceil($total / $pageSize),
-        ];
-    }
-
-    /**
      * 排除指定键
      * @param array $array
      * @param array $keys
@@ -135,82 +212,6 @@ class ArrayTool
     public static function onlyKeys(array $array, array $keys) : array
     {
         return array_intersect_key($array, array_flip($keys));
-    }
-
-    /**
-     * 统计二维数组中指定字段为指定值或不为指定的个数
-     * @param array $array
-     * @param string $key
-     * @param mixed $search
-     * @param int $compare 比较符号 1相等 2不相等
-     * @return int
-     */
-    public static function countSearchValues(array $array, string $key, mixed $search, int $compare = 1): int
-    {
-        // 使用 array_column 提取指定字段，结合 array_filter 过滤掉空字符
-        $filteredValues = array_filter(array_column($array, $key), function($value) use ($search, $compare) {
-            if ($compare == 1) {
-                return $value == $search;
-            } else {
-                return $value != $search;
-            }
-        });
-
-        // 返回个数
-        return count($filteredValues);
-    }
-
-    /**
-     * 将数组转换成树形结构
-     * @param array $list
-     * @param string $pk
-     * @param string $pid
-     * @param string $child
-     * @param int $root
-     * @return array
-     */
-    public static function arrayToTree(array $list, string $pk = 'id', string $pid = 'p_id', string $child = '_child', int $root = 0) : array
-    {
-        // 创建Tree
-        $tree = [];
-        if (!empty($list)) {
-            // 创建基于主键的数组引用
-            $refer = array();
-            foreach ($list as $data) {
-                $refer[$data[$pk]] = &$data;
-            }
-            foreach ($list as $key => $data) {
-                // 判断是否存在parent
-                $parentId = $data[$pid];
-                if ($root == $parentId) {
-                    $tree[] = &$data;
-                } else {
-                    if (isset($refer[$parentId])) {
-                        $parent = &$refer[$parentId];
-                        $parent[$child][] =& $list[$key];
-                    }
-                }
-            }
-        }
-        return $tree;
-    }
-
-    /**
-     * 将二维数组转换成某一个key为下标的新数组
-     * @param array $list
-     * @param string $key
-     * @return array
-     */
-    public static function arrayIndexByKey(array $list, string $key) : array
-    {
-        return array_reduce($list, function ($carry, $item) use ($key) {
-            $index = $item[$key];
-            if (!isset($carry[$index])) {
-                $carry[$index] = [];
-            }
-            $carry[$index][] = $item;
-            return $carry;
-        }, []);
     }
 
     /**
