@@ -168,6 +168,20 @@ class CheckTool
 
         return $age >= 18; // 判断是否成年
     }
+    /**
+     * 校验是否成年（根据身份证号）
+     * @param string $idCard
+     * @return bool
+     */
+    public static function checkAgeAudltByIdCard(string $idCard) : bool
+    {
+        if (!self::checkChineseIdCardNo($idCard)) {
+            return false;
+        }
+        $birthYear = substr($idCard, 6, 4);
+        $currentYear = date('Y');
+        return $currentYear - $birthYear >= 18;
+    }
 
     /**
      * 校验微信号格式
