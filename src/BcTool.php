@@ -96,8 +96,12 @@ class BcTool
      */
     public static function round(float|int|string $number, int $scale = 2) : string
     {
-        $factor = bcpow('10', (string)$scale);
-        return bcdiv(bcmul((string)$number, $factor, $scale + 1), $factor, $scale);
+        $number = (string)$number;
+        // 修正后的四舍五入算法
+        $factor = bcpow('10', (string)$scale, 0);
+        $multiplied = bcmul($number, $factor, $scale + 1);
+        $rounded = bcadd($multiplied, '0.5', 0);
+        return bcdiv($rounded, $factor, $scale);
     }
 
     /**
