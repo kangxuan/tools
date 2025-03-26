@@ -136,12 +136,17 @@ class ArrayTool
             return [];
         }
         $refer = [];
-        foreach ($list as &$data) {
-            if (!isset($data[$pk]) || !isset($data[$pid])) {
+        // 修复引用残留问题
+        foreach ($list as $k => $v) {
+            if (!isset($v[$pk]) || !isset($v[$pid])) {
                 continue;
             }
-            $refer[$data[$pk]] = &$data;
+            // 强制初始化子节点数组
+            $v[$child] = isset($v[$child]) && is_array($v[$child]) ? $v[$child] : [];
+            $refer[$v[$pk]] = &$list[$k]; // 直接使用数组索引引用
         }
+        unset($v); // 消除循环变量引用
+
         $tree = [];
         foreach ($list as $key => $data) {
             if (!isset($data[$pid])) {
@@ -149,10 +154,10 @@ class ArrayTool
             }
             $parentId = $data[$pid];
             if ($root == $parentId) {
-                $tree[] = &$data;
+                $tree[] = &$list[$key];
             } elseif (isset($refer[$parentId])) {
                 $parent = &$refer[$parentId];
-                $parent[$child][] = &$list[$key];
+                $parent[$child][] = &$list[$key]; // 直接引用原始数组元素
             }
         }
         return $tree;
