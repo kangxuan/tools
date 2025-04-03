@@ -11,13 +11,38 @@ use Exception;
 class DateTimeTool
 {
     /**
+     * 用于测试的当前时间
+     * @var DateTime|null
+     */
+    private static ?DateTime $testNow = null;
+
+    /**
+     * 设置测试用的当前时间
+     * @param DateTime $dateTime
+     * @return void
+     */
+    public static function setTestNow(DateTime $dateTime): void
+    {
+        self::$testNow = $dateTime;
+    }
+
+    /**
+     * 获取当前时间
+     * @return DateTime
+     */
+    private static function getNow(): DateTime
+    {
+        return self::$testNow ?? new DateTime();
+    }
+
+    /**
      * 获取当前日期
      * @param string $format
      * @return string
      */
     public static function now(string $format = 'Y-m-d H:i:s') : string
     {
-        return (new DateTime())->format($format);
+        return self::getNow()->format($format);
     }
 
     /**
@@ -140,7 +165,7 @@ class DateTimeTool
             return '';
         }
         $startTimestamp = strtotime($startTime);
-        $diffTimestamp = time() - $startTimestamp;
+        $diffTimestamp = self::getNow()->getTimestamp() - $startTimestamp;
 
         if ($diffTimestamp < 60) {
             return '1分钟前' . $suffix;
@@ -154,7 +179,7 @@ class DateTimeTool
             $days = floor($diffTimestamp / 86400);
             return $days . '天前' . $suffix;
         } else {
-            $yearNow = date('Y', time());
+            $yearNow = self::getNow()->format('Y');
             $yearStart = date('Y', $startTimestamp);
 
             if ($yearNow == $yearStart) {
@@ -173,8 +198,8 @@ class DateTimeTool
      */
     public static function getNextMonthDate(int $day, string $format = 'Y-m-d') : string
     {
-        // 创建当前日期时间的 DateTime 对象
-        $currentDateTime = new DateTime();
+        // 使用当前时间或测试时间
+        $currentDateTime = self::getNow();
 
         // 获取当前月份和年份
         $currentMonth = intval($currentDateTime->format('m'));
@@ -184,11 +209,13 @@ class DateTimeTool
         $nextMonth = $currentMonth == 12 ? 1 : $currentMonth + 1;
         $nextYear = $currentMonth == 12 ? $currentYear + 1 : $currentYear;
 
-        $nextMonthDateTime = DateTime::createFromFormat('Y-m-d', "$nextYear-$nextMonth-$day");
+        // 创建下个月指定日期的 DateTime 对象，并设置时间为 00:00:00
+        $nextMonthDateTime = DateTime::createFromFormat('Y-m-d H:i:s', "$nextYear-$nextMonth-$day 00:00:00");
 
         // 如果下个月不存在的日期则返回下个月最后一天
         if ($nextMonthDateTime->format('m') != $nextMonth || $nextMonthDateTime->format('d') != $day) {
             $lastDayOfNextMonth = new DateTime("last day of $nextYear-$nextMonth");
+            $lastDayOfNextMonth->setTime(0, 0);
             return $lastDayOfNextMonth->format($format);
         }
 
@@ -204,24 +231,24 @@ class DateTimeTool
      */
     public static function getNextWeekDate(int $dayOfWeek, string $format = 'Y-m-d') : string
     {
-        $currentDateTime = new DateTime();
+        $currentDateTime = self::getNow();
 
         // 获取当前是星期几
         $currentDayOfWeek = $currentDateTime->format('N');
 
         // 计算到下周指定星期几的天数差
-        $daysToAdd = ($dayOfWeek - $currentDayOfWeek + 7) % 7;
+        // 总是先加上7天到下周，然后调整到指定的星期几
+        $daysToAdd = 7 + ($dayOfWeek - $currentDayOfWeek);
 
-        // 如果要找的星期几就是今天，则添加 7 天以获取下周的同一天
-        if ($daysToAdd === 0) {
-            $daysToAdd = 7;
-        }
-
-        // 添加天数以获取下周指定星期几的日期
-        $currentDateTime->add(new DateInterval('P' . $daysToAdd . 'D'));
+        // 创建新的 DateTime 对象以避免修改原始对象
+        $nextWeekDate = clone $currentDateTime;
+        $nextWeekDate->add(new DateInterval('P' . $daysToAdd . 'D'));
+        
+        // 设置时间为 00:00:00
+        $nextWeekDate->setTime(0, 0);
 
         // 返回格式化后的日期字符串
-        return $currentDateTime->format($format);
+        return $nextWeekDate->format($format);
     }
 
 
