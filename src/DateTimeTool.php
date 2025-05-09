@@ -251,5 +251,32 @@ class DateTimeTool
         return $nextWeekDate->format($format);
     }
 
+    /**
+     * 获取两个日期间所有日期
+     * @param string $startDate
+     * @param string $endDate
+     * @param string $format
+     * @param bool $isReverse
+     * @return array
+     * @throws Exception
+     */
+    public static function getDatesBetween(string $startDate, string $endDate, string $format='Y-m-d', bool $isReverse = false) : array
+    {
+        $start = new DateTime($startDate);
+        $end = new DateTime($endDate);
 
+        $dates = [];
+        $current = clone $start;
+
+        while ($current <= $end) {
+            $dates[] = $current->format($format);
+            $current->modify('+1 day');
+        }
+
+        if ($isReverse) {
+            $dates = array_reverse($dates);
+        }
+
+        return $dates;
+    }
 }
