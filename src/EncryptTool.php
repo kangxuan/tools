@@ -242,4 +242,120 @@ class EncryptTool
 
         return hash_equals($calculatedSignature, $signature);
     }
+
+    /**
+     * 使用 RSA 私钥签名数据
+     * @param string $data 要签名的数据
+     * @param string $privateKey 私钥
+     * @param string $algorithm 签名算法（默认 sha256）
+     * @return string 返回签名结果，经过 Base64 编码
+     * @throws Exception
+     */
+    public static function signWithPrivateKey(string $data, string $privateKey, string $algorithm = 'sha256'): string
+    {
+        $signature = '';
+
+        if (!openssl_sign($data, $signature, $privateKey, $algorithm)) {
+            throw new Exception('签名失败：' . openssl_error_string());
+        }
+
+        return base64_encode($signature);
+    }
+
+    /**
+     * 使用 RSA 公钥验证签名
+     * @param string $data 原始数据
+     * @param string $signature 签名（Base64 编码）
+     * @param string $publicKey 公钥
+     * @param string $algorithm 签名算法（默认 sha256）
+     * @return bool 返回签名是否有效
+     * @throws Exception
+     */
+    public static function verifyWithPublicKey(string $data, string $signature, string $publicKey, string $algorithm = 'sha256'): bool
+    {
+        $decodedSignature = base64_decode($signature, true);
+
+        if ($decodedSignature === false) {
+            throw new Exception('无效的签名格式');
+        }
+
+        $result = openssl_verify($data, $decodedSignature, $publicKey, $algorithm);
+        if ($result === -1) {
+            throw new Exception('验证签名时发生错误：' . openssl_error_string());
+        }
+
+        return $result === 1;
+    }
+
+    /**
+     * 将 PEM 格式的密钥转换为 PKCS#8 格式
+     * @param string $key PEM 格式的密钥
+     * @param bool $isPrivate 是否为私钥
+     * @return string 返回 PKCS#8 格式的密钥
+     * @throws Exception
+     */
+    public static function convertToPKCS8(string $key, bool $isPrivate = true): string
+    {
+        if ($isPrivate) {
+            $resource = openssl_pkey_get_private($key);
+            if ($resource === false) {
+                throw new Exception('无效的私钥：' . openssl_error_string());
+            }
+            
+            $pkcs8Key = '';
+            if (!openssl_pkey_export($resource, $pkcs8Key)) {
+                throw new Exception('私钥转换失败：' . openssl_error_string());
+            }
+            
+            return $pkcs8Key;
+        } else {
+            $resource = openssl_pkey_get_public($key);
+            if ($resource === false) {
+                throw new Exception('无效的公钥：' . openssl_error_string());
+            }
+            
+            $details = openssl_pkey_get_details($resource);
+            if ($details === false) {
+                throw new Exception('获取公钥详情失败：' . openssl_error_string());
+            }
+            
+            return $details['key'];
+        }
+    }
+
+    /**
+     * 将 PKCS#8 格式的密钥转换为 PEM 格式
+     * @param string $key PKCS#8 格式的密钥
+     * @param bool $isPrivate 是否为私钥
+     * @return string 返回 PEM 格式的密钥
+     * @throws Exception
+     */
+    public static function convertToPEM(string $key, bool $isPrivate = true): string
+    {
+        if ($isPrivate) {
+            $resource = openssl_pkey_get_private($key);
+            if ($resource === false) {
+                throw new Exception('无效的私钥：' . openssl_error_string());
+            }
+            
+            $pemKey = '';
+            if (!openssl_pkey_export($resource, $pemKey)) {
+                throw new Exception('私钥转换失败：' . openssl_error_string());
+            }
+            
+            return $pemKey;
+        } else {
+            $resource = openssl_pkey_get_public($key);
+            if ($resource === false) {
+                throw new Exception('无效的公钥：' . openssl_error_string());
+            }
+            
+            $details = openssl_pkey_get_details($resource);
+            if ($details === false) {
+                throw new Exception('获取公钥详情失败：' . openssl_error_string());
+            }
+            
+            return $details['key'];
+        }
+    }
 }
