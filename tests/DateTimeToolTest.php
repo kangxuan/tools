@@ -108,4 +108,53 @@ class DateTimeToolTest extends TestCase
         $this->assertEquals('2024-03-24', DateTimeTool::getNextWeekDate(7)); // 下周日
         $this->assertEquals('2024-03-22 00:00:00', DateTimeTool::getNextWeekDate(5, 'Y-m-d H:i:s'));
     }
+
+    public function testGetDatesBetween()
+    {
+        // 测试正常日期范围
+        $dates = DateTimeTool::getDatesBetween('2024-03-15', '2024-03-17');
+        $this->assertEquals([
+            '2024-03-15',
+            '2024-03-16',
+            '2024-03-17'
+        ], $dates);
+
+        // 测试自定义格式
+        $dates = DateTimeTool::getDatesBetween('2024-03-15', '2024-03-17', 'Y/m/d');
+        $this->assertEquals([
+            '2024/03/15',
+            '2024/03/16',
+            '2024/03/17'
+        ], $dates);
+
+        // 测试反向排序
+        $dates = DateTimeTool::getDatesBetween('2024-03-15', '2024-03-17', 'Y-m-d', true);
+        $this->assertEquals([
+            '2024-03-17',
+            '2024-03-16',
+            '2024-03-15'
+        ], $dates);
+
+        // 测试单日
+        $dates = DateTimeTool::getDatesBetween('2024-03-15', '2024-03-15');
+        $this->assertEquals(['2024-03-15'], $dates);
+
+        // 测试跨月
+        $dates = DateTimeTool::getDatesBetween('2024-03-30', '2024-04-02');
+        $this->assertEquals([
+            '2024-03-30',
+            '2024-03-31',
+            '2024-04-01',
+            '2024-04-02'
+        ], $dates);
+
+        // 测试跨年
+        $dates = DateTimeTool::getDatesBetween('2024-12-30', '2025-01-02');
+        $this->assertEquals([
+            '2024-12-30',
+            '2024-12-31',
+            '2025-01-01',
+            '2025-01-02'
+        ], $dates);
+    }
 }
