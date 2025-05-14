@@ -124,7 +124,19 @@ class FileTool
      */
     public static function getFileExtension(string $fileName) : bool|string
     {
-        return pathinfo($fileName, PATHINFO_EXTENSION);
+        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+        return $extension === '' ? false : $extension;
+    }
+
+    /**
+     * 移动文件（用于测试）
+     * @param string $source
+     * @param string $destination
+     * @return bool
+     */
+    public static function moveFile(string $source, string $destination) : bool
+    {
+        return rename($source, $destination);
     }
 
     /**
@@ -158,7 +170,13 @@ class FileTool
         }
 
         // 移动文件到目标路径
-        if (move_uploaded_file($file['tmp_name'], $destination)) {
+        if (is_uploaded_file($file['tmp_name'])) {
+            $result = move_uploaded_file($file['tmp_name'], $destination);
+        } else {
+            $result = self::moveFile($file['tmp_name'], $destination);
+        }
+
+        if ($result) {
             return ['success' => 1, 'path' => $destination, 'msg' => 'success'];
         }
 

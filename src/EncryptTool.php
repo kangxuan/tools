@@ -74,7 +74,7 @@ class EncryptTool
     }
 
     /**
-     * 使用 RSA 公钥加密数据
+     * 使用 RSA 公钥加密数据 -- 适用于短字符串
      * @param string $data 要加密的数据
      * @param string $publicKey 公钥
      * @return string 返回加密后的字符串，经过 Base64 编码
@@ -92,7 +92,7 @@ class EncryptTool
     }
 
     /**
-     * 使用 RSA 私钥解密数据
+     * 使用 RSA 私钥解密数据 -- 适用于短字符串
      * @param string $data 加密的数据（Base64 编码）
      * @param string $privateKey 私钥
      * @return string 返回解密后的字符串

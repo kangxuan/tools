@@ -306,7 +306,9 @@ class ImageTool
             1,  // [] gif
             2,  // [] jpg
             3,  // [] png
-            6   // [] bmp
+            6,  // [] bmp
+            15, // [] WBMP
+            18, // [] webp
         );
 
         if (!in_array($imgType, $allowedTypes)) {
@@ -318,6 +320,8 @@ class ImageTool
             2 => imageCreateFromJpeg($filepath),
             3 => imageCreateFromPng($filepath),
             6 => imageCreateFromBmp($filepath),
+            15 => imageCreateFromWbmp($filepath),
+            18 => imageCreateFromWebp($filepath),
             default => throw new Exception('暂不支持的图片格式'),
         };
     }
