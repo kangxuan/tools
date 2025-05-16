@@ -268,9 +268,14 @@ class CheckTool
      */
     public static function checkXML(string $xml) : bool
     {
+        if (empty($xml)) {
+            return false;
+        }
         libxml_use_internal_errors(true);
-        simplexml_load_string($xml);
-        return !libxml_get_errors();
+        $result = simplexml_load_string($xml);
+        $errors = libxml_get_errors();
+        libxml_clear_errors();
+        return $result !== false && empty($errors);
     }
 
     /**
@@ -303,5 +308,212 @@ class CheckTool
     public static function isValidIntegerString($value) : bool
     {
         return preg_match('/^-?\d+$/', $value) && $value === (string)(int)$value;
+    }
+
+
+    /**
+     * 检查字符串是否只包含字母
+     * @param string $str
+     * @return bool
+     */
+    public static function isAlpha(string $str) : bool
+    {
+        return ctype_alpha($str);
+    }
+
+    /**
+     * 检查字符串是否只包含数字
+     * @param string $str
+     * @return bool
+     */
+    public static function isNumeric(string $str) : bool
+    {
+        return ctype_digit($str);
+    }
+
+    /**
+     * 检查字符串是否只包含字母和数字
+     * @param string $str
+     * @return bool
+     */
+    public static function isAlphanumeric(string $str) : bool
+    {
+        return ctype_alnum($str);
+    }
+
+    /**
+     * 检查字符串是否是有效的邮政编码（中国大陆）
+     * @param string $postcode
+     * @return bool
+     */
+    public static function isPostcode(string $postcode) : bool
+    {
+        return preg_match('/^\d{6}$/', $postcode) === 1;
+    }
+
+    /**
+     * 检查字符串是否是有效的QQ号
+     * @param string $qq
+     * @return bool
+     */
+    public static function isQq(string $qq) : bool
+    {
+        return preg_match('/^[1-9]\d{4,10}$/', $qq) === 1;
+    }
+
+    /**
+     * 检查字符串是否是有效的银行卡号
+     * @param string $bankCard
+     * @return bool
+     */
+    public static function isBankCard(string $bankCard) : bool
+    {
+        return preg_match('/^\d{16,19}$/', $bankCard) === 1;
+    }
+
+    /**
+     * 检查字符串是否是有效的密码（至少包含大小写字母和数字，长度8-20位）
+     * @param string $password
+     * @return bool
+     */
+    public static function isStrongPassword(string $password) : bool
+    {
+        return preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,20}$/', $password) === 1;
+    }
+
+    /**
+     * 检查字符串是否是有效的真实姓名（中文，长度2-10位）
+     * @param string $realname
+     * @return bool
+     */
+    public static function isRealname(string $realname) : bool
+    {
+        return preg_match('/^[\x{4e00}-\x{9fa5}]{2,10}$/u', $realname) === 1;
+    }
+
+    /**
+     * 检查字符串是否是有效的地址（中文、字母、数字，长度5-100位）
+     * @param string $address
+     * @return bool
+     */
+    public static function isAddress(string $address) : bool
+    {
+        return preg_match('/^[\x{4e00}-\x{9fa5}a-zA-Z0-9]{5,100}$/u', $address) === 1;
+    }
+
+    /**
+     * 检查字符串是否是有效的统一社会信用代码
+     * @param string $creditCode
+     * @return bool
+     */
+    public static function isCreditCode(string $creditCode) : bool
+    {
+        // 统一社会信用代码格式：18位，前2位是登记管理部门代码，中间6位是行政区划代码，后10位是组织机构代码
+        if (!preg_match('/^[0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{9}[0-9A-HJ-NPQRTUWXY]$/', $creditCode)) {
+            return false;
+        }
+        
+        // 校验位计算
+        $weights = [1, 3, 9, 27, 19, 26, 16, 17, 20, 29, 25, 13, 8, 24, 10, 30, 28];
+        $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $sum = 0;
+        
+        for ($i = 0; $i < 17; $i++) {
+            $sum += strpos($chars, $creditCode[$i]) * $weights[$i];
+        }
+        
+        $checkDigit = $chars[31 - ($sum % 31)];
+        return $checkDigit === $creditCode[17];
+    }
+
+    /**
+     * 检查字符串是否是有效的组织机构代码
+     * @param string $orgCode
+     * @return bool
+     */
+    public static function isOrgCode(string $orgCode) : bool
+    {
+        // 组织机构代码格式：8位数字或大写字母，1位校验码（数字或X）
+        if (!preg_match('/^[0-9A-Z]{8}-?[0-9X]$/', $orgCode)) {
+            return false;
+        }
+        
+        // 移除连字符
+        $orgCode = str_replace('-', '', $orgCode);
+        
+        // 校验位计算
+        $weights = [3, 7, 9, 10, 5, 8, 4, 2];
+        $sum = 0;
+        
+        for ($i = 0; $i < 8; $i++) {
+            $sum += (is_numeric($orgCode[$i]) ? intval($orgCode[$i]) : ord($orgCode[$i]) - ord('A') + 10) * $weights[$i];
+        }
+        
+        $checkDigit = 11 - ($sum % 11);
+        $checkChar = $checkDigit === 10 ? 'X' : (string)$checkDigit;
+        
+        return $checkChar === $orgCode[8];
+    }
+
+    /**
+     * 检查字符串是否是有效的税号
+     * @param string $taxCode
+     * @return bool
+     */
+    public static function isTaxCode(string $taxCode) : bool
+    {
+        // 税号格式：与统一社会信用代码相同
+        return self::isCreditCode($taxCode);
+    }
+
+    /**
+     * 检查字符串是否是有效的营业执照号
+     * @param string $license
+     * @return bool
+     */
+    public static function isLicense(string $license) : bool
+    {
+        // 营业执照号格式：与统一社会信用代码相同
+        return self::isCreditCode($license);
+    }
+
+    /**
+     * 检查字符串是否是有效的统一社会信用代码或组织机构代码
+     * @param string $code
+     * @return bool
+     */
+    public static function isOrgOrCreditCode(string $code) : bool
+    {
+        return self::isCreditCode($code) || self::isOrgCode($code);
+    }
+
+    /**
+     * 检查字符串是否是有效的统一社会信用代码或税号
+     * @param string $code
+     * @return bool
+     */
+    public static function isCreditOrTaxCode(string $code) : bool
+    {
+        return self::isCreditCode($code) || self::isTaxCode($code);
+    }
+
+    /**
+     * 检查字符串是否是有效的统一社会信用代码或营业执照号
+     * @param string $code
+     * @return bool
+     */
+    public static function isCreditOrLicense(string $code) : bool
+    {
+        return self::isCreditCode($code) || self::isLicense($code);
+    }
+
+    /**
+     * 检查字符串是否是有效的统一社会信用代码、组织机构代码、税号或营业执照号
+     * @param string $code
+     * @return bool
+     */
+    public static function isBusinessCode(string $code) : bool
+    {
+        return self::isCreditCode($code) || self::isOrgCode($code) || self::isTaxCode($code) || self::isLicense($code);
     }
 }

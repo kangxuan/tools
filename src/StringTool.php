@@ -109,5 +109,123 @@ class StringTool
         return $mobile;
     }
 
+    /**
+     * 生成随机字符串
+     * @param int $length 字符串长度
+     * @param string $type 字符类型：alpha-字母, numeric-数字, alphanumeric-字母和数字, all-所有字符
+     * @return string
+     */
+    public static function random(int $length = 16, string $type = 'alphanumeric') : string
+    {
+        $alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $numeric = '0123456789';
+        $special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
 
+        $chars = match($type) {
+            'alpha' => $alpha,
+            'numeric' => $numeric,
+            'alphanumeric' => $alpha . $numeric,
+            'all' => $alpha . $numeric . $special,
+            default => $alpha . $numeric
+        };
+
+        $result = '';
+        $max = strlen($chars) - 1;
+        for ($i = 0; $i < $length; $i++) {
+            $result .= $chars[random_int(0, $max)];
+        }
+        return $result;
+    }
+
+    /**
+     * 将字符串转换为驼峰命名
+     * @param string $str
+     * @param string $separator 分隔符
+     * @return string
+     */
+    public static function toCamelCase(string $str, string $separator = '_') : string
+    {
+        return lcfirst(str_replace(' ', '', ucwords(str_replace($separator, ' ', $str))));
+    }
+
+    /**
+     * 将字符串转换为下划线命名
+     * @param string $str
+     * @return string
+     */
+    public static function toSnakeCase(string $str) : string
+    {
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $str));
+    }
+
+    /**
+     * 将字符串转换为标题格式（每个单词首字母大写）
+     * @param string $str
+     * @param string $separator 分隔符
+     * @return string
+     */
+    public static function toTitleCase(string $str, string $separator = '_') : string
+    {
+        return ucwords(str_replace($separator, ' ', $str));
+    }
+
+    /**
+     * 检查字符串是否包含指定的子字符串
+     * @param string $haystack
+     * @param string|array $needles
+     * @return bool
+     */
+    public static function contains(string $haystack, string|array $needles) : bool
+    {
+        if (!is_array($needles)) {
+            return str_contains($haystack, $needles);
+        }
+
+        foreach ($needles as $needle) {
+            if (str_contains($haystack, $needle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 将字符串转换为小写
+     * @param string $str
+     * @return string
+     */
+    public static function toLower(string $str) : string
+    {
+        return mb_strtolower($str);
+    }
+
+    /**
+     * 将字符串转换为大写
+     * @param string $str
+     * @return string
+     */
+    public static function toUpper(string $str) : string
+    {
+        return mb_strtoupper($str);
+    }
+
+    /**
+     * 将字符串转换为首字母大写
+     * @param string $str
+     * @return string
+     */
+    public static function toFirstUpper(string $str) : string
+    {
+        return mb_strtoupper(mb_substr($str, 0, 1)) . mb_substr($str, 1);
+    }
+
+    /**
+     * 将字符串转换为首字母小写
+     * @param string $str
+     * @return string
+     */
+    public static function toFirstLower(string $str) : string
+    {
+        return mb_strtolower(mb_substr($str, 0, 1)) . mb_substr($str, 1);
+    }
 }
