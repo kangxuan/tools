@@ -403,27 +403,31 @@ class CheckTool
 
     /**
      * 检查字符串是否是有效的统一社会信用代码
-     * @param string $creditCode
+     * @param string $uscc
      * @return bool
      */
-    public static function isCreditCode(string $creditCode) : bool
+    public static function isValidUSCC(string $uscc): bool
     {
-        // 统一社会信用代码格式：18位，前2位是登记管理部门代码，中间6位是行政区划代码，后10位是组织机构代码
-        if (!preg_match('/^[0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{9}[0-9A-HJ-NPQRTUWXY]$/', $creditCode)) {
-            return false;
-        }
-        
-        // 校验位计算
+        if (strlen($uscc) !== 18) return false;
+
+        $charset = str_split('0123456789ABCDEFGHJKLMNPQRTUWXY'); // 正确顺序
+        $charMap = array_flip($charset);
         $weights = [1, 3, 9, 27, 19, 26, 16, 17, 20, 29, 25, 13, 8, 24, 10, 30, 28];
-        $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $sum = 0;
-        
+
+        $uscc = strtoupper(trim($uscc)); // 清理空格、统一大写
+        $base = substr($uscc, 0, 17);
+        $checkChar = $uscc[17];
+
+        $total = 0;
         for ($i = 0; $i < 17; $i++) {
-            $sum += strpos($chars, $creditCode[$i]) * $weights[$i];
+            $char = $base[$i];
+            if (!isset($charMap[$char])) return false;
+            $total += $charMap[$char] * $weights[$i];
         }
-        
-        $checkDigit = $chars[31 - ($sum % 31)];
-        return $checkDigit === $creditCode[17];
+
+        $checkIndex = (31 - $total % 31) % 31;
+        $expectedChar = $charset[$checkIndex];
+        return $expectedChar === $checkChar;
     }
 
     /**
@@ -431,89 +435,35 @@ class CheckTool
      * @param string $orgCode
      * @return bool
      */
-    public static function isOrgCode(string $orgCode) : bool
+    public static function isOrgCode(string $orgCode): bool
     {
-        // 组织机构代码格式：8位数字或大写字母，1位校验码（数字或X）
+        // 标准组织机构代码格式：8位 + 校验位（中间可带 -）
         if (!preg_match('/^[0-9A-Z]{8}-?[0-9X]$/', $orgCode)) {
             return false;
         }
-        
-        // 移除连字符
-        $orgCode = str_replace('-', '', $orgCode);
-        
-        // 校验位计算
+
+        $orgCode = str_replace('-', '', strtoupper($orgCode));
+        $charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charMap = array_flip(str_split($charset));
         $weights = [3, 7, 9, 10, 5, 8, 4, 2];
         $sum = 0;
-        
+
         for ($i = 0; $i < 8; $i++) {
-            $sum += (is_numeric($orgCode[$i]) ? intval($orgCode[$i]) : ord($orgCode[$i]) - ord('A') + 10) * $weights[$i];
+            $char = $orgCode[$i];
+            if (!isset($charMap[$char])) {
+                return false; // 非法字符（比如 I、O）
+            }
+            $sum += $charMap[$char] * $weights[$i];
         }
-        
+
         $checkDigit = 11 - ($sum % 11);
-        $checkChar = $checkDigit === 10 ? 'X' : (string)$checkDigit;
-        
+        if ($checkDigit === 10) {
+            $checkChar = 'X';
+        } elseif ($checkDigit === 11) {
+            $checkChar = '0';
+        } else {
+            $checkChar = (string)$checkDigit;
+        }
         return $checkChar === $orgCode[8];
-    }
-
-    /**
-     * 检查字符串是否是有效的税号
-     * @param string $taxCode
-     * @return bool
-     */
-    public static function isTaxCode(string $taxCode) : bool
-    {
-        // 税号格式：与统一社会信用代码相同
-        return self::isCreditCode($taxCode);
-    }
-
-    /**
-     * 检查字符串是否是有效的营业执照号
-     * @param string $license
-     * @return bool
-     */
-    public static function isLicense(string $license) : bool
-    {
-        // 营业执照号格式：与统一社会信用代码相同
-        return self::isCreditCode($license);
-    }
-
-    /**
-     * 检查字符串是否是有效的统一社会信用代码或组织机构代码
-     * @param string $code
-     * @return bool
-     */
-    public static function isOrgOrCreditCode(string $code) : bool
-    {
-        return self::isCreditCode($code) || self::isOrgCode($code);
-    }
-
-    /**
-     * 检查字符串是否是有效的统一社会信用代码或税号
-     * @param string $code
-     * @return bool
-     */
-    public static function isCreditOrTaxCode(string $code) : bool
-    {
-        return self::isCreditCode($code) || self::isTaxCode($code);
-    }
-
-    /**
-     * 检查字符串是否是有效的统一社会信用代码或营业执照号
-     * @param string $code
-     * @return bool
-     */
-    public static function isCreditOrLicense(string $code) : bool
-    {
-        return self::isCreditCode($code) || self::isLicense($code);
-    }
-
-    /**
-     * 检查字符串是否是有效的统一社会信用代码、组织机构代码、税号或营业执照号
-     * @param string $code
-     * @return bool
-     */
-    public static function isBusinessCode(string $code) : bool
-    {
-        return self::isCreditCode($code) || self::isOrgCode($code) || self::isTaxCode($code) || self::isLicense($code);
     }
 }

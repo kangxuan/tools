@@ -190,60 +190,18 @@ class CheckToolTest extends TestCase
 
     public function testIsCreditCode()
     {
-        $this->assertEquals(true, CheckTool::isCreditCode('91110000100000000A'));
-        $this->assertEquals(false, CheckTool::isCreditCode('9111000010000000'));
-        $this->assertEquals(false, CheckTool::isCreditCode('911100001000000000'));
-        $this->assertEquals(false, CheckTool::isCreditCode('91110000100000000B'));
+        $this->assertEquals(true, CheckTool::isValidUSCC('91350211M000100Y46'));
+        $this->assertEquals(false, CheckTool::isValidUSCC('9111000010000000'));
+        $this->assertEquals(false, CheckTool::isValidUSCC('911100001000000000'));
+        $this->assertEquals(false, CheckTool::isValidUSCC('91110000100000000B'));
     }
 
     public function testIsOrgCode()
     {
-        $this->assertEquals(true, CheckTool::isOrgCode('12345678-9'));
-        $this->assertEquals(true, CheckTool::isOrgCode('123456789'));
+        $this->assertEquals(true, CheckTool::isOrgCode('G1234567-8'));
+        $this->assertEquals(true, CheckTool::isOrgCode('A1234567-4'));
         $this->assertEquals(false, CheckTool::isOrgCode('12345678'));
         $this->assertEquals(false, CheckTool::isOrgCode('1234567890'));
-    }
-
-    public function testIsTaxCode()
-    {
-        $this->assertEquals(true, CheckTool::isTaxCode('91110000100000000A'));
-        $this->assertEquals(false, CheckTool::isTaxCode('9111000010000000'));
-        $this->assertEquals(false, CheckTool::isTaxCode('911100001000000000'));
-        $this->assertEquals(false, CheckTool::isTaxCode('91110000100000000B'));
-    }
-
-    public function testIsLicense()
-    {
-        $this->assertEquals(true, CheckTool::isLicense('91110000100000000A'));
-        $this->assertEquals(false, CheckTool::isLicense('9111000010000000'));
-        $this->assertEquals(false, CheckTool::isLicense('911100001000000000'));
-        $this->assertEquals(false, CheckTool::isLicense('91110000100000000B'));
-    }
-
-    public function testIsOrgOrCreditCode()
-    {
-        $this->assertEquals(true, CheckTool::isOrgOrCreditCode('91110000100000000A'));
-        $this->assertEquals(true, CheckTool::isOrgOrCreditCode('12345678-9'));
-        $this->assertEquals(false, CheckTool::isOrgOrCreditCode('invalid'));
-    }
-
-    public function testIsCreditOrTaxCode()
-    {
-        $this->assertEquals(true, CheckTool::isCreditOrTaxCode('91110000100000000A'));
-        $this->assertEquals(false, CheckTool::isCreditOrTaxCode('invalid'));
-    }
-
-    public function testIsCreditOrLicense()
-    {
-        $this->assertEquals(true, CheckTool::isCreditOrLicense('91110000100000000A'));
-        $this->assertEquals(false, CheckTool::isCreditOrLicense('invalid'));
-    }
-
-    public function testIsBusinessCode()
-    {
-        $this->assertEquals(true, CheckTool::isBusinessCode('91110000100000000A'));
-        $this->assertEquals(true, CheckTool::isBusinessCode('12345678-9'));
-        $this->assertEquals(false, CheckTool::isBusinessCode('invalid'));
     }
 
     public function testIsValidVersion()
