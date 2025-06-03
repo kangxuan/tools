@@ -122,11 +122,11 @@ class ImageTool
     {
         // 获取图片的尺寸和水印的尺寸
         list($originalWidth, $originalHeight, $imageType) = getimagesize($imagePath);
-        list($watermarkWidth, $watermarkHeight) = getimagesize($watermarkPath);
+        list($watermarkWidth, $watermarkHeight, $waterImageType) = getimagesize($watermarkPath);
 
         // 创建图片和水印资源
         $sourceImage = self::createImageFromFile($imagePath, $imageType);
-        $watermarkImage = self::createImageFromFile($watermarkPath, $imageType);
+        $watermarkImage = self::createImageFromFile($watermarkPath, $waterImageType);
 
         // 根据位置确定水印的位置
         switch ($position) {
@@ -150,6 +150,9 @@ class ImageTool
         }
 
         // 合并水印到原始图片上
+        if ($watermarkImage === false || !($watermarkImage instanceof GdImage)) {
+            throw new Exception('水印图片创建失败');
+        }
         imagecopy($sourceImage, $watermarkImage, $x, $y, 0, 0, $watermarkWidth, $watermarkHeight);
 
         // 保存带水印的图片
@@ -168,7 +171,11 @@ class ImageTool
     public static function getImageSize(string $imagePath) : array
     {
         // 获取图片尺寸（宽度和高度）
-        return getimagesize($imagePath);
+        $size = getimagesize($imagePath);
+        if ($size === false) {
+            throw new Exception('无法获取图片尺寸');
+        }
+        return $size;
     }
 
     /**
@@ -181,19 +188,15 @@ class ImageTool
     private static function saveImageToFile($image, string $outputPath, int $imageType) : void
     {
         // 根据图片类型保存图片
-        switch ($imageType) {
-            case IMAGETYPE_JPEG:
-                imagejpeg($image, $outputPath); // 保存JPEG格式
-                break;
-            case IMAGETYPE_PNG:
-                imagepng($image, $outputPath);  // 保存PNG格式
-                break;
-            case IMAGETYPE_GIF:
-                imagegif($image, $outputPath);  // 保存GIF格式
-                break;
-            default:
-                throw new Exception('不支持的图片类型'); // 异常处理：不支持的类型
-        }
+        match ($imageType) {
+            IMAGETYPE_GIF => imagegif($image, $outputPath),
+            IMAGETYPE_JPEG => imagejpeg($image, $outputPath),
+            IMAGETYPE_PNG => imagepng($image, $outputPath),
+            IMAGETYPE_BMP => imagebmp($image, $outputPath),
+            IMAGETYPE_WBMP => imagewbmp($image, $outputPath),
+            IMAGETYPE_WEBP => imagewebp($image, $outputPath),
+            default => throw new Exception('不支持的图片类型'),
+        };
     }
 
     /**
@@ -229,8 +232,14 @@ class ImageTool
         $localImages = [];
         foreach ($imageUrls as $imageUrl) {
             $imageExtension = FileTool::getFileExtension($imageUrl);
-            $tmpSavePath = '/tmp/' . date("Ymd") . '/' . uniqid() . md5($imageUrl) . $imageExtension;
-            FileTool::downloadFileToLocal($imageUrl, $tmpSavePath);
+            $tmpDir = __DIR__ . '/tmp/' . date("Ymd");
+            if (!FileTool::exists($tmpDir)) {
+                FileTool::createDir($tmpDir);
+            }
+            $tmpSavePath = $tmpDir . '/' . uniqid() . md5($imageUrl) . $imageExtension;
+            if (!FileTool::downloadFileToLocal($imageUrl, $tmpSavePath) || !file_exists($tmpSavePath)) {
+                throw new Exception('图片下载失败.');
+            }
             $localImages[] = $tmpSavePath;
         }
         if (empty($localImages) || count($imageUrls) != count($localImages)) {
@@ -285,7 +294,7 @@ class ImageTool
         }
 
         // 保存合并后的图像到本地
-        $outputPath = '/tmp/' . date("Ymd") . '/' . uniqid() . md5(implode(',', $localImages)) . '.jpg';
+        $outputPath = __DIR__ . '/tmp/' . date("Ymd") . '/' . uniqid() . md5(implode(',', $localImages)) . '.jpg';
         imagejpeg($mergedImage, $outputPath, 100);
         // 释放内存
         imagedestroy($mergedImage);
@@ -300,15 +309,19 @@ class ImageTool
      */
     public static function imageCreateFromAny(string $filepath) : GdImage|bool
     {
+        if (!self::isImage($filepath)) {
+            return false;
+        }
+
         list(, , $imgType) = self::getImageSize($filepath);
 
         $allowedTypes = array(
-            1,  // [] gif
-            2,  // [] jpg
-            3,  // [] png
-            6,  // [] bmp
-            15, // [] WBMP
-            18, // [] webp
+            IMAGETYPE_GIF,  // [] gif
+            IMAGETYPE_JPEG,  // [] jpg
+            IMAGETYPE_PNG,  // [] png
+            IMAGETYPE_BMP,  // [] bmp
+            IMAGETYPE_WBMP, // [] WBMP
+            IMAGETYPE_WEBP, // [] webp
         );
 
         if (!in_array($imgType, $allowedTypes)) {
@@ -316,13 +329,23 @@ class ImageTool
         }
 
         return match ($imgType) {
-            1 => imageCreateFromGif($filepath),
-            2 => imageCreateFromJpeg($filepath),
-            3 => imageCreateFromPng($filepath),
-            6 => imageCreateFromBmp($filepath),
-            15 => imageCreateFromWbmp($filepath),
-            18 => imageCreateFromWebp($filepath),
+            IMAGETYPE_GIF => imageCreateFromGif($filepath),
+            IMAGETYPE_JPEG => imageCreateFromJpeg($filepath),
+            IMAGETYPE_PNG => imageCreateFromPng($filepath),
+            IMAGETYPE_BMP => imageCreateFromBmp($filepath),
+            IMAGETYPE_WBMP => imageCreateFromWbmp($filepath),
+            IMAGETYPE_WEBP => imageCreateFromWebp($filepath),
             default => throw new Exception('暂不支持的图片格式'),
         };
+    }
+
+    /**
+     * 判断文件是否为图片
+     * @param string $filepath
+     * @return bool
+     */
+    public static function isImage(string $filepath) : bool
+    {
+        return getimagesize($filepath) !== false;
     }
 }
