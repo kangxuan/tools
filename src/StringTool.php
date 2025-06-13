@@ -93,7 +93,8 @@ class StringTool
         if (empty($jsonStr)) {
             return [];
         }
-        return json_decode($jsonStr, true);
+        $result = json_decode($jsonStr, true);
+        return $result === null ? [] : $result;
     }
 
     /**
@@ -103,10 +104,10 @@ class StringTool
      */
     public static function hideMobile(string $mobile) : string
     {
-        if (!empty($mobile)) {
-            return substr_replace($mobile, '****', -8, 4);
+        if (strlen($mobile) < 11) {
+            return $mobile;
         }
-        return $mobile;
+        return substr_replace($mobile, '****', -8, 4);
     }
 
     /**
@@ -216,7 +217,10 @@ class StringTool
      */
     public static function toFirstUpper(string $str) : string
     {
-        return mb_strtoupper(mb_substr($str, 0, 1)) . mb_substr($str, 1);
+        if (empty($str)) {
+            return $str;
+        }
+        return mb_strtoupper(mb_substr($str, 0, 1)) . mb_strtolower(mb_substr($str, 1));
     }
 
     /**
@@ -226,6 +230,9 @@ class StringTool
      */
     public static function toFirstLower(string $str) : string
     {
-        return mb_strtolower(mb_substr($str, 0, 1)) . mb_substr($str, 1);
+        if (empty($str)) {
+            return $str;
+        }
+        return mb_strtolower(mb_substr($str, 0, 1)) . mb_strtolower(mb_substr($str, 1));
     }
 }
